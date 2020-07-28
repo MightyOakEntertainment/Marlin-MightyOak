@@ -10,15 +10,17 @@
 Additional documentation can be found at the [Marlin Home Page](https://marlinfw.org/).
 Please test this firmware and let us know if it misbehaves in any way. Volunteers are standing by!
 
-## Marlin 2.0
+## Marlin - Monolith
+
+This is a custom Branch of Marlin maintained by Dracrius for personal use on an Ender 3 Pro equiped with an SKR mini e3 1.2 mainboard, aluminum extruder, glass bed (no special settings) and a Hero Me Gen5 Dual 5015 fan duct/ hotend mount. If your machine matches theses settings this branch may work for you as well but be warned it is designed specifically for one machine and will be update to match the upgrades that I make. 
+
+I also limit the bed and nozzle temps to what are the max safe temps for a Capricorn tubing lined hotend and heated bed with the magnetic sheet as I left mine under my glass for a future spring steel sheet testing. I plan to upgrade to a Micro Swiss hotend at which point the firmware max temps will be update to reflect that and will become to high for safe use in the stock Ender 3 hotend. 
+
+## Built from Marlin 2.0
 
 Marlin 2.0 takes this popular RepRap firmware to the next level by adding support for much faster 32-bit and ARM-based boards while improving support for 8-bit AVR boards. Read about Marlin's decision to use a "Hardware Abstraction Layer" below.
 
 Download earlier versions of Marlin on the [Releases page](https://github.com/MarlinFirmware/Marlin/releases).
-
-## Marlin - Monolith
-
-This is a custom Branch of Marlin maintained by Dracrius for personal use on an Ender 3 Pro equiped with an SKR mini e3 1.2 mainboard, aluminum extruder, glass bed (no special settings) and a Hero Me Gen5 Dual 5015 fan duct/ hotend mount. If your machine matches theses settings this branch may work for you as well but be warned it is designed specifically for one machine and will be update to match the upgrades that I make. I also limit the bed and nozzle temps to what are the max safe temps for a Capricorn tubed hotend and heated bed with the magnetic sheet as I left mine under my glass for a future spring steel sheet test. I plan to upgrade to a Micro Swiss hotend at which point the firmware max temps will be update to reflect that and will become to high for safe use in the stock hotend. 
 
 ## Building Marlin 2.0
 
