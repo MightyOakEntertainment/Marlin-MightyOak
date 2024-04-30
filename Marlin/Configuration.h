@@ -669,9 +669,9 @@
     #define DEFAULT_Ki_LIST {   1.08,   1.08 }
     #define DEFAULT_Kd_LIST { 114.00, 114.00 }
   #else
-    #define DEFAULT_Kp  19.54
-    #define DEFAULT_Ki  1.69
-    #define DEFAULT_Kd  54.63
+    #define DEFAULT_Kp  40.02
+    #define DEFAULT_Ki  4.35
+    #define DEFAULT_Kd  92.05
   #endif
 #endif
 
@@ -754,9 +754,9 @@
 
   // 120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
   // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
-  #define DEFAULT_bedKp 113.22
-  #define DEFAULT_bedKi 20.55
-  #define DEFAULT_bedKd 415.79
+  #define DEFAULT_bedKp 191.14
+  #define DEFAULT_bedKi 35.14
+  #define DEFAULT_bedKd 693.19
 
   // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
 #endif // PIDTEMPBED
@@ -1545,11 +1545,11 @@
  *     |    [-]    |
  *     O-- FRONT --+
  */
-#define NOZZLE_TO_PROBE_OFFSET { -46.8, 0, -2.6 }
+#define NOZZLE_TO_PROBE_OFFSET { -46.8, 0, 0 }
 
 // Most probes should stay away from the edges of the bed, but
 // with NOZZLE_AS_PROBE this can be negative for a wider probing area.
-#define PROBING_MARGIN 20
+#define PROBING_MARGIN 30
 
 // X and Y axis travel speed (mm/min) between probes
 #define XY_PROBE_FEEDRATE 10000 //(50*60)
@@ -1605,7 +1605,7 @@
  * A total of 2 does fast/slow probes with a weighted average.
  * A total of 3 or more adds more slow probes, taking the average.
  */
-#define MULTIPLE_PROBING 2
+//#define MULTIPLE_PROBING 2
 //#define EXTRA_PROBING    1
 
 /**
@@ -1763,7 +1763,7 @@
 #define X_MIN_POS 0
 #define Y_MIN_POS 0
 #define Z_MIN_POS 0
-#define X_MAX_POS X_BED_SIZE
+#define X_MAX_POS (X_BED_SIZE + 18)
 #define Y_MAX_POS Y_BED_SIZE
 #define Z_MAX_POS 275
 //#define I_MIN_POS 0
