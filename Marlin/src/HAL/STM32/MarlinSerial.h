@@ -2,6 +2,9 @@
  * Marlin 3D Printer Firmware
  * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
+ * Based on Sprinter and grbl.
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,37 +27,49 @@
   #include "../../feature/e_parser.h"
 #endif
 
-typedef void (*usart_rx_callback_t)(serial_t * obj);
+#if ENABLED(SERIAL_DMA)
+  #include "HardwareSerial.h"
+#endif
 
-class MarlinSerial : public HardwareSerial {
-public:
-  MarlinSerial(void* peripheral, usart_rx_callback_t rx_callback) :
-      HardwareSerial(peripheral), _rx_callback(rx_callback)
-      #if ENABLED(EMERGENCY_PARSER)
-        , emergency_state(EmergencyParser::State::EP_RESET)
-      #endif
-  { }
+#include "../../core/serial_hook.h"
 
-  void begin(unsigned long baud, uint8_t config);
-  inline void begin(unsigned long baud) { begin(baud, SERIAL_8N1); }
+#if ENABLED(SERIAL_DMA)
 
-  void _rx_complete_irq(serial_t* obj);
+  struct MarlinSerial : public HAL_HardwareSerial {
+    MarlinSerial(void *peripheral) : HAL_HardwareSerial(peripheral) { }
+    void begin(unsigned long baud, uint8_t config);
+    inline void begin(unsigned long baud) { begin(baud, SERIAL_8N1); }
+  };
 
-protected:
-  usart_rx_callback_t _rx_callback;
-  #if ENABLED(EMERGENCY_PARSER)
-    EmergencyParser::State emergency_state;
-  #endif
-};
+#else // Arduino non-DMA
 
-extern MarlinSerial MSerial1;
-extern MarlinSerial MSerial2;
-extern MarlinSerial MSerial3;
-extern MarlinSerial MSerial4;
-extern MarlinSerial MSerial5;
-extern MarlinSerial MSerial6;
-extern MarlinSerial MSerial7;
-extern MarlinSerial MSerial8;
-extern MarlinSerial MSerial9;
-extern MarlinSerial MSerial10;
-extern MarlinSerial MSerialLP1;
+  typedef void (*usart_rx_callback_t)(serial_t * obj);
+
+  struct MarlinSerial : public HardwareSerial {
+    MarlinSerial(void *peripheral, usart_rx_callback_t rx_callback)
+      : HardwareSerial(peripheral), _rx_callback(rx_callback) { }
+
+    void begin(unsigned long baud, uint8_t config);
+    inline void begin(unsigned long baud) { begin(baud, SERIAL_8N1); }
+
+    void _rx_complete_irq(serial_t *obj);
+    FORCE_INLINE static uint8_t buffer_overruns() { return 0; } // Not implemented. Void to avoid platform-dependent code.
+
+    protected:
+      usart_rx_callback_t _rx_callback;
+  };
+
+#endif
+
+typedef Serial1Class<MarlinSerial> MSerialT;
+extern MSerialT MSerial1;
+extern MSerialT MSerial2;
+extern MSerialT MSerial3;
+extern MSerialT MSerial4;
+extern MSerialT MSerial5;
+extern MSerialT MSerial6;
+extern MSerialT MSerial7;
+extern MSerialT MSerial8;
+extern MSerialT MSerial9;
+extern MSerialT MSerial10;
+extern MSerialT MSerialLP1;

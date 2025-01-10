@@ -64,13 +64,12 @@
 
 /**
  * 5DPrint D8 Driver board pin assignments
+ * Schematic: https://bitbucket.org/makible/5dprint-d8-controller-board/src/master/5DPD8_v1.0_OS_schematics.PDF
  *
  * https://bitbucket.org/makible/5dprint-d8-controller-board
  */
 
-#ifndef __AVR_AT90USB1286__
-  #error "Oops! Select 'Teensy++ 2.0' or 'Printrboard' in 'Tools > Board.'"
-#endif
+#include "env_validate.h"
 
 #define DEFAULT_MACHINE_NAME "Makibox"
 #define BOARD_INFO_NAME      "5DPrint D8"
@@ -133,8 +132,8 @@
 #define HEATER_0_PIN                          15  // C5
 #define HEATER_BED_PIN                        14  // C4
 
-#ifndef FAN_PIN
-  #define FAN_PIN                             16  // C6  PWM3A
+#ifndef FAN0_PIN
+  #define FAN0_PIN                            16  // C6  PWM3A
 #endif
 
 //
@@ -144,5 +143,5 @@
 
 //DIGIPOTS slave addresses
 #ifndef DIGIPOT_I2C_ADDRESS_A
-  #define DIGIPOT_I2C_ADDRESS_A 0x2C              // unshifted slave address for DIGIPOT 0x2C (0x58 <- 0x2C << 1)
+  #define DIGIPOT_I2C_ADDRESS_A             0x2C  // unshifted slave address for DIGIPOT 0x2C (0x58 <- 0x2C << 1)
 #endif

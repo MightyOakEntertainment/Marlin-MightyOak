@@ -21,10 +21,11 @@
  */
 #ifdef ARDUINO_ARCH_ESP32
 
-#include "../../core/serial.h"
 #include "../../inc/MarlinConfigPre.h"
 
 #if ENABLED(WIFISUPPORT)
+
+#include "../../core/serial.h"
 
 #include <WiFi.h>
 #include <ESPmDNS.h>
@@ -59,7 +60,7 @@ void wifi_init() {
 
   MDNS.addService("http", "tcp", 80);
 
-  SERIAL_ECHOLNPAIR("Successfully connected to WiFi with SSID '" WIFI_SSID "', hostname: '" WIFI_HOSTNAME "', IP address: ", WiFi.localIP().toString().c_str());
+  SERIAL_ECHOLNPGM("Successfully connected to WiFi with SSID '" WIFI_SSID "', hostname: '" WIFI_HOSTNAME "', IP address: ", WiFi.localIP().toString().c_str());
 }
 
 #endif // WIFISUPPORT

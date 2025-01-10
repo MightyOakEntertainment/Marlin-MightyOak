@@ -23,11 +23,10 @@
 
 /**
  * Cohesion3D Mini pin assignments
+ * Schematic: https://lasergods.com/cohesion3d-mini-pinout-diagram/
  */
 
-#ifndef MCU_LPC1769
-  #error "Oops! Make sure you have the LPC1769 environment selected in your IDE."
-#endif
+#include "env_validate.h"
 
 #define BOARD_INFO_NAME "Cohesion3D Mini"
 
@@ -72,16 +71,14 @@
 //
 // Default pins for TMC software SPI
 //
-#if ENABLED(TMC_USE_SW_SPI)
-  #ifndef TMC_SW_MOSI
-    #define TMC_SW_MOSI                    P1_16  // Ethernet Expansion - Pin 5
-  #endif
-  #ifndef TMC_SW_MISO
-    #define TMC_SW_MISO                    P1_17  // Ethernet Expansion - Pin 6
-  #endif
-  #ifndef TMC_SW_SCK
-    #define TMC_SW_SCK                     P1_08  // Ethernet Expansion - Pin 7
-  #endif
+#ifndef TMC_SPI_MOSI
+  #define TMC_SPI_MOSI                     P1_16  // Ethernet Expansion - Pin 5
+#endif
+#ifndef TMC_SPI_MISO
+  #define TMC_SPI_MISO                     P1_17  // Ethernet Expansion - Pin 6
+#endif
+#ifndef TMC_SPI_SCK
+  #define TMC_SPI_SCK                      P1_08  // Ethernet Expansion - Pin 7
 #endif
 
 //
@@ -96,8 +93,8 @@
 //
 #define HEATER_BED_PIN                     P2_05
 #define HEATER_0_PIN                       P2_07  // FET 1
-#ifndef FAN_PIN
-  #define FAN_PIN                          P2_06  // FET 3
+#ifndef FAN0_PIN
+  #define FAN0_PIN                         P2_06  // FET 3
 #endif
 
 //
@@ -127,7 +124,7 @@
   #define SPINDLE_LASER_ENA_PIN            P2_07  // FET 1
   #undef HEATER_BED_PIN
   #define SPINDLE_LASER_PWM_PIN            P2_05  // Bed FET
-  #undef FAN_PIN
+  #undef FAN0_PIN
   #define SPINDLE_DIR_PIN                  P2_06  // FET 3
 #endif
 
@@ -141,7 +138,7 @@
 // connector are shared with the onboard SD card, and Marlin does not support reading
 // G-code files from the onboard SD card.
 //
-#if HAS_SPI_LCD
+#if HAS_WIRED_LCD
 
   #define BEEPER_PIN                       P0_27  // EXP2-7 - open drain
 
@@ -151,16 +148,16 @@
 
   #define LCD_PINS_RS                      P0_16  // EXP1-4
   #define LCD_SDSS                         P0_28  // EXP2-4
-  #define LCD_PINS_ENABLE                  P0_18  // EXP1-3
+  #define LCD_PINS_EN                      P0_18  // EXP1-3
   #define LCD_PINS_D4                      P0_15  // EXP1-5
 
   #define KILL_PIN                         P2_11  // EXP2-10
 
-  #if ENABLED(SDSUPPORT)
+  #if HAS_MEDIA
     #error "SDSUPPORT is not currently supported by the Cohesion3D boards"
   #endif
 
-#endif // HAS_SPI_LCD
+#endif // HAS_WIRED_LCD
 
 //
 // Ethernet pins

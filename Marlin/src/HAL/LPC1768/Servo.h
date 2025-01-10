@@ -39,14 +39,12 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-#pragma once
 
 /**
  * Based on "servo.h - Interrupt driven Servo library for Arduino using 16 bit timers -
  *           Version 2 Copyright (c) 2009 Michael Margolis.  All right reserved.
  *
  * The only modification was to update/delete macros to match the LPC176x.
- *
  */
 
 #include <Servo.h>
@@ -66,4 +64,5 @@ class libServo: public Servo {
   }
 };
 
-#define HAL_SERVO_LIB libServo
+class libServo;
+typedef libServo hal_servo_t;

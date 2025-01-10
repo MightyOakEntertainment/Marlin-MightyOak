@@ -19,6 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
+#ifdef __STM32F1__
 
 /**
  * PersistentStore for Arduino-style EEPROM interface
@@ -40,20 +41,19 @@
   #error "MARLIN_EEPROM_SIZE is required for IIC_BL24CXX_EEPROM."
 #endif
 
-size_t PersistentStore::capacity()    { return MARLIN_EEPROM_SIZE; }
+size_t PersistentStore::capacity()    { return MARLIN_EEPROM_SIZE - eeprom_exclude_size; }
 
 bool PersistentStore::access_start()  { eeprom_init(); return true; }
 bool PersistentStore::access_finish() { return true; }
 
 bool PersistentStore::write_data(int &pos, const uint8_t *value, size_t size, uint16_t *crc) {
+  uint16_t written = 0;
   while (size--) {
     uint8_t v = *value;
-    uint8_t * const p = (uint8_t * const)pos;
-    // EEPROM has only ~100,000 write cycles,
-    // so only write bytes that have changed!
-    if (v != eeprom_read_byte(p)) {
+    uint8_t * const p = (uint8_t * const)REAL_EEPROM_ADDR(pos);
+    if (v != eeprom_read_byte(p)) { // EEPROM has only ~100,000 write cycles, so only write bytes that have changed!
       eeprom_write_byte(p, v);
-      delay(2);
+      if (++written & 0x7F) delay(2); else safe_delay(2); // Avoid triggering watchdog during long EEPROM writes
       if (eeprom_read_byte(p) != v) {
         SERIAL_ECHO_MSG(STR_ERR_EEPROM_WRITE);
         return true;
@@ -66,10 +66,9 @@ bool PersistentStore::write_data(int &pos, const uint8_t *value, size_t size, ui
   return false;
 }
 
-bool PersistentStore::read_data(int &pos, uint8_t* value, size_t size, uint16_t *crc, const bool writing/*=true*/) {
+bool PersistentStore::read_data(int &pos, uint8_t *value, size_t size, uint16_t *crc, const bool writing/*=true*/) {
   do {
-    uint8_t * const p = (uint8_t * const)pos;
-    uint8_t c = eeprom_read_byte(p);
+    const uint8_t c = eeprom_read_byte((uint8_t*)REAL_EEPROM_ADDR(pos));
     if (writing) *value = c;
     crc16(crc, &c, 1);
     pos++;
@@ -79,3 +78,4 @@ bool PersistentStore::read_data(int &pos, uint8_t* value, size_t size, uint16_t 
 }
 
 #endif // IIC_BL24CXX_EEPROM
+#endif // __STM32F1__

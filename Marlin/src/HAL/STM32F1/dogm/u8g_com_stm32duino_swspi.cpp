@@ -2,6 +2,9 @@
  * Marlin 3D Printer Firmware
  * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
+ * Based on Sprinter and grbl.
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,23 +19,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
+
 #ifdef __STM32F1__
 
 #include "../../../inc/MarlinConfig.h"
 
-#if BOTH(HAS_GRAPHICAL_LCD, FORCE_SOFT_SPI)
+#if ALL(HAS_MARLINUI_U8GLIB, FORCE_SOFT_SPI)
 
-#include "../HAL.h"
-#include <U8glib.h>
+#include <U8glib-HAL.h>
+#include "../../shared/HAL_SPI.h"
 
-#undef SPI_SPEED
-#define SPI_SPEED 0 // Fastest
-//#define SPI_SPEED 2 // Slower
+#ifndef LCD_SPI_SPEED
+  #define LCD_SPI_SPEED SPI_FULL_SPEED    // Fastest
+  //#define LCD_SPI_SPEED SPI_QUARTER_SPEED // Slower
+#endif
 
-static uint8_t SPI_speed = SPI_SPEED;
+static uint8_t SPI_speed = LCD_SPI_SPEED;
 
 static inline uint8_t swSpiTransfer_mode_0(uint8_t b, const uint8_t spi_speed, const pin_t miso_pin=-1) {
-  LOOP_L_N(i, 8) {
+  for (uint8_t i = 0; i < 8; ++i) {
     if (spi_speed == 0) {
       WRITE(DOGLCD_MOSI, !!(b & 0x80));
       WRITE(DOGLCD_SCK, HIGH);
@@ -42,16 +47,16 @@ static inline uint8_t swSpiTransfer_mode_0(uint8_t b, const uint8_t spi_speed, c
     }
     else {
       const uint8_t state = (b & 0x80) ? HIGH : LOW;
-      LOOP_L_N(j, spi_speed)
+      for (uint8_t j = 0; j < spi_speed; ++j)
         WRITE(DOGLCD_MOSI, state);
 
-      LOOP_L_N(j, spi_speed + (miso_pin >= 0 ? 0 : 1))
+      for (uint8_t j = 0; j < spi_speed + (miso_pin >= 0 ? 0 : 1); ++j)
         WRITE(DOGLCD_SCK, HIGH);
 
       b <<= 1;
       if (miso_pin >= 0 && READ(miso_pin)) b |= 1;
 
-      LOOP_L_N(j, spi_speed)
+      for (uint8_t j = 0; j < spi_speed; ++j)
         WRITE(DOGLCD_SCK, LOW);
     }
   }
@@ -59,7 +64,7 @@ static inline uint8_t swSpiTransfer_mode_0(uint8_t b, const uint8_t spi_speed, c
 }
 
 static inline uint8_t swSpiTransfer_mode_3(uint8_t b, const uint8_t spi_speed, const pin_t miso_pin=-1) {
-  LOOP_L_N(i, 8) {
+  for (uint8_t i = 0; i < 8; ++i) {
     const uint8_t state = (b & 0x80) ? HIGH : LOW;
     if (spi_speed == 0) {
       WRITE(DOGLCD_SCK, LOW);
@@ -68,13 +73,13 @@ static inline uint8_t swSpiTransfer_mode_3(uint8_t b, const uint8_t spi_speed, c
       WRITE(DOGLCD_SCK, HIGH);
     }
     else {
-      LOOP_L_N(j, spi_speed + (miso_pin >= 0 ? 0 : 1))
+      for (uint8_t j = 0; j < spi_speed + (miso_pin >= 0 ? 0 : 1); ++j)
         WRITE(DOGLCD_SCK, LOW);
 
-      LOOP_L_N(j, spi_speed)
+      for (uint8_t j = 0; j < spi_speed; ++j)
         WRITE(DOGLCD_MOSI, state);
 
-      LOOP_L_N(j, spi_speed)
+      for (uint8_t j = 0; j < spi_speed; ++j)
         WRITE(DOGLCD_SCK, HIGH);
     }
     b <<= 1;
@@ -83,8 +88,8 @@ static inline uint8_t swSpiTransfer_mode_3(uint8_t b, const uint8_t spi_speed, c
   return b;
 }
 
-static void u8g_sw_spi_HAL_STM32F1_shift_out(uint8_t val) {
-  #if ENABLED(FYSETC_MINI_12864)
+static void u8g_sw_spi_shift_out(uint8_t val) {
+  #if U8G_SPI_USE_MODE_3
     swSpiTransfer_mode_3(val, SPI_speed);
   #else
     swSpiTransfer_mode_0(val, SPI_speed);
@@ -105,7 +110,7 @@ static uint8_t swSpiInit(const uint8_t spi_speed) {
 uint8_t u8g_com_HAL_STM32F1_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_ptr) {
   switch (msg) {
     case U8G_COM_MSG_INIT:
-      SPI_speed = swSpiInit(SPI_SPEED);
+      SPI_speed = swSpiInit(LCD_SPI_SPEED);
       break;
 
     case U8G_COM_MSG_STOP:
@@ -118,15 +123,15 @@ uint8_t u8g_com_HAL_STM32F1_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, 
       break;
 
     case U8G_COM_MSG_CHIP_SELECT:
-      #if ENABLED(FYSETC_MINI_12864) // This LCD SPI is running mode 3 while SD card is running mode 0
-        if (arg_val) {               // SCK idle state needs to be set to the proper idle state before
-                                     // the next chip select goes active
-          WRITE(DOGLCD_SCK, HIGH);   // Set SCK to mode 3 idle state before CS goes active
+      #if U8G_SPI_USE_MODE_3        // This LCD SPI is running mode 3 while SD card is running mode 0
+        if (arg_val) {              // SCK idle state needs to be set to the proper idle state before
+                                    //  the next chip select goes active
+          WRITE(DOGLCD_SCK, HIGH);  // Set SCK to mode 3 idle state before CS goes active
           WRITE(DOGLCD_CS, LOW);
         }
         else {
           WRITE(DOGLCD_CS, HIGH);
-          WRITE(DOGLCD_SCK, LOW);  // Set SCK to mode 0 idle state after CS goes inactive
+          WRITE(DOGLCD_SCK, LOW);   // Set SCK to mode 0 idle state after CS goes inactive
         }
       #else
         WRITE(DOGLCD_CS, !arg_val);
@@ -134,13 +139,13 @@ uint8_t u8g_com_HAL_STM32F1_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, 
       break;
 
     case U8G_COM_MSG_WRITE_BYTE:
-      u8g_sw_spi_HAL_STM32F1_shift_out(arg_val);
+      u8g_sw_spi_shift_out(arg_val);
       break;
 
     case U8G_COM_MSG_WRITE_SEQ: {
       uint8_t *ptr = (uint8_t *)arg_ptr;
       while (arg_val > 0) {
-        u8g_sw_spi_HAL_STM32F1_shift_out(*ptr++);
+        u8g_sw_spi_shift_out(*ptr++);
         arg_val--;
       }
     } break;
@@ -148,7 +153,7 @@ uint8_t u8g_com_HAL_STM32F1_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, 
     case U8G_COM_MSG_WRITE_SEQ_P: {
       uint8_t *ptr = (uint8_t *)arg_ptr;
       while (arg_val > 0) {
-        u8g_sw_spi_HAL_STM32F1_shift_out(u8g_pgm_read(ptr));
+        u8g_sw_spi_shift_out(u8g_pgm_read(ptr));
         ptr++;
         arg_val--;
       }
@@ -161,5 +166,5 @@ uint8_t u8g_com_HAL_STM32F1_sw_spi_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, 
   return 1;
 }
 
-#endif // HAS_GRAPHICAL_LCD
+#endif // HAS_MARLINUI_U8GLIB && FORCE_SOFT_SPI
 #endif // STM32F1

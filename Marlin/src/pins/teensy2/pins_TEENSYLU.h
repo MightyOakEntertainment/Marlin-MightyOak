@@ -17,13 +17,16 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.   If not, see <https://www.gnu.org/licenses/>.
- *
  */
+#pragma once
 
 /**
  *  Rev C  2 JUN 2017
  *
  *  Converted to Arduino pin numbering
+ *
+ *  Schematic (1.0): https://raw.githubusercontent.com/StephS/Teensylu/master/working/Teensylu-1.0.sch
+ *  (*) Other versions are discouraged by creator.
  */
 
 /**
@@ -73,7 +76,10 @@
   *  The pin assignments in this file match the silkscreen.
   */
 
-#if !defined(__AVR_AT90USB1286__) && !defined(__AVR_AT90USB1286P__)
+#define ALLOW_AT90USB1286P
+#include "env_validate.h"
+
+#if NOT_TARGET(__AVR_AT90USB1286__, __AVR_AT90USB1286P__)
   #error "Oops! Select 'Teensy++ 2.0' or 'Printrboard' in 'Tools > Board.'"
 #endif
 
@@ -126,8 +132,8 @@
 #define HEATER_0_PIN                          15  // C5 PWM3B - Extruder
 #define HEATER_BED_PIN                        14  // C4 PWM3C
 
-#ifndef FAN_PIN
-  #define FAN_PIN                             16  // C6 PWM3A
+#ifndef FAN0_PIN
+  #define FAN0_PIN                            16  // C6 PWM3A
 #endif
 
 //
@@ -142,7 +148,8 @@
 //
 // LCD / Controller
 //
-#if BOTH(ULTRA_LCD, NEWPANEL)
+
+#if HAS_WIRED_LCD && IS_NEWPANEL
 
   #define BEEPER_PIN                          -1
 
@@ -155,11 +162,13 @@
 
   #define SD_DETECT_PIN                       -1
 
-#endif // HAS_SPI_LCD && NEWPANEL
+#endif // HAS_WIRED_LCD && IS_NEWPANEL
 
 //
 // M3/M4/M5 - Spindle/Laser Control
 //
-#define SPINDLE_LASER_PWM_PIN                 24  // B4 IO-3 PWM2A - MUST BE HARDWARE PWM
-#define SPINDLE_LASER_ENA_PIN                 39  // F1 IO-11 - Pin should have a pullup!
-#define SPINDLE_DIR_PIN                       40  // F2 IO-9
+#if HAS_CUTTER
+  #define SPINDLE_LASER_PWM_PIN               24  // B4 IO-3 PWM2A - MUST BE HARDWARE PWM
+  #define SPINDLE_LASER_ENA_PIN               39  // F1 IO-11 - Pin should have a pullup!
+  #define SPINDLE_DIR_PIN                     40  // F2 IO-9
+#endif
